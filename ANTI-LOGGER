@@ -139,10 +139,6 @@ end
 
 -- Función para auto-expulsarse (desconectarse del servidor)
 local function selfKick()
-    -- Método 1: Usar TeleportService para salir del servidor
-    game:GetService("TeleportService"):Teleport(game.PlaceId)
-    
-    -- Método 2: Si el anterior no funciona, forzar la desconexión
     game.Players.LocalPlayer:Kick("Administrador detectado - Auto-expulsión activada")
 end
 
