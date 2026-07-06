@@ -47,7 +47,7 @@ local TitleCorner = Instance.new("UICorner")
 TitleCorner.Parent = Title
 TitleCorner.CornerRadius = UDim.new(0, 8)
 
--- Estado
+-- Estado con texto "Estado: " en blanco
 local Status = Instance.new("TextLabel")
 Status.Parent = MainFrame
 Status.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
@@ -55,8 +55,9 @@ Status.BorderSizePixel = 0
 Status.Position = UDim2.new(0, 0, 0, 35)
 Status.Size = UDim2.new(0, 150, 0, 25)
 Status.Font = Enum.Font.Gotham
-Status.Text = "Estado: Activo"
-Status.TextColor3 = Color3.fromRGB(85, 255, 85)
+Status.Text = "Estado: <font color='rgb(85, 255, 85)'>Activo</font>"
+Status.RichText = true
+Status.TextColor3 = Color3.fromRGB(255, 255, 255)
 Status.TextSize = 12.000
 
 local StatusCorner = Instance.new("UICorner")
@@ -146,8 +147,7 @@ local function checkForAdmins()
     
     for _, player in ipairs(game.Players:GetPlayers()) do
         if isAdmin(player.Name) then
-            Status.Text = "Admin: " .. player.Name
-            Status.TextColor3 = Color3.fromRGB(255, 85, 85)
+            Status.Text = "Admin: <font color='rgb(255, 85, 85)'>" .. player.Name .. "</font>"
             
             -- Esperar un momento antes de auto-expulsarse
             wait(1)
@@ -164,8 +164,7 @@ game.Players.PlayerAdded:Connect(function(player)
     if not isActive then return end
     
     if isAdmin(player.Name) then
-        Status.Text = "Admin: " .. player.Name
-        Status.TextColor3 = Color3.fromRGB(255, 85, 85)
+        Status.Text = "Admin: <font color='rgb(255, 85, 85)'>" .. player.Name .. "</font>"
         
         -- Esperar un momento antes de auto-expulsarse
         wait(1)
@@ -181,13 +180,11 @@ ToggleButton.MouseButton1Click:Connect(function()
     if isActive then
         ToggleButton.Text = "Desactivar"
         ToggleButton.BackgroundColor3 = Color3.fromRGB(85, 170, 255)
-        Status.Text = "Estado: Activo"
-        Status.TextColor3 = Color3.fromRGB(85, 255, 85)
+        Status.Text = "Estado: <font color='rgb(85, 255, 85)'>Activo</font>"
     else
         ToggleButton.Text = "Activar"
         ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
-        Status.Text = "Estado: Inactivo"
-        Status.TextColor3 = Color3.fromRGB(255, 85, 85)
+        Status.Text = "Estado: <font color='rgb(255, 85, 85)'>Inactivo</font>"
     end
 end)
 
