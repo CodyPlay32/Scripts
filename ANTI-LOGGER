@@ -109,7 +109,7 @@ end
 -- Botón de toggle (más moderno)
 local ToggleButton = Instance.new("TextButton")
 ToggleButton.Parent = MainFrame
-ToggleButton.BackgroundColor3 = Color3.fromRGB(85, 170, 255)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
 ToggleButton.BorderSizePixel = 0
 ToggleButton.Position = UDim2.new(0, 25, 0, 170)
 ToggleButton.Size = UDim2.new(0, 100, 0, 25)
