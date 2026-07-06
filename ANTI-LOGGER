@@ -1,6 +1,6 @@
 -- Script para Delta Executor - Auto-expulsión cuando un administrador entre
 local admins = {
-    "s3r31n_n", "RaaneshGamer4435K", "Mvspro12321", "DxxrkVenom", "RealGloxh",
+    "darkwolfplayerinuse", "s3r31n_n", "RaaneshGamer4435K", "Mvspro12321", "DxxrkVenom", "RealGloxh",
     "vicekeeper", "SempaiH9", "24l05l09", "coolkidsuper500", "S1verlynne",
     "cclarify", "nukestar", "swagknife19", "beodnt", "Sama_roblox34",
     "1Daxito", "Juanpith0rik0", "FreedomBirth", "dytona_x", "Souligraphy",
