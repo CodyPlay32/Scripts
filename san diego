@@ -2247,7 +2247,7 @@ task.spawn(function()
 				Description = "Walk speed while Alt is held (default game speed is 16)",
 				Default = values.altSpeed,
 				Min = 24,
-				Max = 120,
+				Max = 1000,
 				Rounding = 0,
 				Callback = function(value)
 					values.altSpeed = value
