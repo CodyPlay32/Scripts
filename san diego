@@ -1,39 +1,71 @@
--- Anti-Update Script para Delta Executor
--- Solo saca al jugador, no cierra el juego
+-- Anti-Update Script v2 para Delta Executor
 
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+
 local LocalPlayer = Players.LocalPlayer
 
--- Guardar valores iniciales
-local initialPlaceVersion = game.PlaceVersion
-local initialJobId = game.JobId
-local initialPlaceId = game.PlaceId
-
--- Mensaje al ser expulsado
-local kickMessage = "El juego se ha actualizado. Reconectando..."
-
--- Función para expulsar
-local function kickPlayer(reason)
-    LocalPlayer:Kick(kickMessage .. " (" .. reason .. ")")
+if not LocalPlayer then
+    warn("LocalPlayer no encontrado")
+    return
 end
 
--- Verificación cada 3 segundos
-while task.wait(3) do
-    -- Detectar cambio de versión del lugar
-    if game.PlaceVersion ~= initialPlaceVersion then
-        kickPlayer("Versión cambiada: " .. initialPlaceVersion .. " → " .. game.PlaceVersion)
-        break
-    end
-    
-    -- Detectar cambio de servidor
-    if game.JobId ~= initialJobId then
-        kickPlayer("Servidor cambiado")
-        break
-    end
-    
-    -- Detectar cambio de lugar
-    if game.PlaceId ~= initialPlaceId then
-        kickPlayer("Lugar cambiado")
-        break
-    end
+-- Valores iniciales
+local startPlaceVersion = game.PlaceVersion
+local startJobId = game.JobId
+local kicked = false
+
+local function kick(reason)
+    if kicked then return end
+    kicked = true
+    LocalPlayer:Kick("Juego actualizado. Reconecta: " .. reason)
 end
+
+-- Método 1: Detectar cambio de versión (más confiable)
+spawn(function()
+    while wait(2) do
+        if kicked then break end
+        
+        local success, currentVersion = pcall(function()
+            return game.PlaceVersion
+        end)
+        
+        if success and currentVersion ~= startPlaceVersion then
+            kick("Versión " .. startPlaceVersion .. "→" .. currentVersion)
+            break
+        end
+    end
+end)
+
+-- Método 2: Detectar cambio de JobId
+spawn(function()
+    while wait(1) do
+        if kicked then break end
+        
+        if game.JobId ~= startJobId then
+            kick("Nuevo servidor")
+            break
+        end
+    end
+end)
+
+-- Método 3: Detectar intento de teletransporte (actualización forzada)
+TeleportService.TeleportInitFailed:Connect(function(player, teleportResult, errorMessage)
+    if player == LocalPlayer then
+        kick("Teleport detectado")
+    end
+end)
+
+TeleportService.TeleportStarted:Connect(function(player)
+    if player == LocalPlayer then
+        kick("Teleport iniciado")
+    end
+end)
+
+-- Método 4: Detectar desconexión de servidor
+game:GetService("NetworkClient"):GetPropertyChangedSignal("ConnectionAccepted"):Connect(function()
+    kick("Cambio de conexión")
+end)
+
+print("Anti-update activado - PlaceVersion: " .. startPlaceVersion)
