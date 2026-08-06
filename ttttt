@@ -1,0 +1,94 @@
+-- Anti-Update Script v3 - Bloquea teleports forzosos
+
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local LocalPlayer = Players.LocalPlayer
+
+if not LocalPlayer then
+    repeat wait() until Players.LocalPlayer
+    LocalPlayer = Players.LocalPlayer
+end
+
+local kicked = false
+
+local function kickNow(reason)
+    if kicked then return end
+    kicked = true
+    
+    -- Sobrescribir teleport para bloquearlo
+    TeleportService.Teleport = function() 
+        warn("Teleport bloqueado")
+        return nil 
+    end
+    
+    TeleportService.TeleportToPlaceInstance = function() 
+        warn("Teleport bloqueado")
+        return nil 
+    end
+    
+    TeleportService.TeleportAsync = function() 
+        warn("Teleport bloqueado")
+        return nil 
+    end
+    
+    -- Intentar kick múltiples veces
+    spawn(function()
+        while wait(0.1) do
+            pcall(function()
+                LocalPlayer:Kick("Actualización detectada: " .. reason)
+            end)
+        end
+    end)
+end
+
+-- Interceptar TODOS los teleports
+local oldTeleport = TeleportService.Teleport
+TeleportService.Teleport = function(self, placeId, player, ...)
+    if player == LocalPlayer then
+        kickNow("Teleport interceptado")
+        return nil
+    end
+    return oldTeleport(self, placeId, player, ...)
+end
+
+local oldTeleportAsync = TeleportService.TeleportAsync
+TeleportService.TeleportAsync = function(self, placeId, players, options)
+    if typeof(players) == "Instance" and players == LocalPlayer then
+        kickNow("TeleportAsync interceptado")
+        return nil
+    end
+    if typeof(players) == "table" then
+        for i, plr in ipairs(players) do
+            if plr == LocalPlayer then
+                kickNow("TeleportAsync interceptado")
+                return nil
+            end
+        end
+    end
+    return oldTeleportAsync(self, placeId, players, options)
+end
+
+-- Detectar cierre del servidor
+game:BindToClose(function()
+    kickNow("Servidor cerrándose")
+end)
+
+-- Detectar cambio de versión
+spawn(function()
+    local startVersion = game.PlaceVersion
+    while wait(1) do
+        if game.PlaceVersion ~= startVersion then
+            kickNow("Versión cambiada")
+            break
+        end
+    end
+end)
+
+-- Detectar desconexión
+game:GetService("NetworkClient").ChildRemoved:Connect(function(child)
+    if child.Name == "ServerConnection" or child.Name == "ClientConnection" then
+        kickNow("Desconexión de red")
+    end
+end)
+
+print("Anti-update activado - Teleports bloqueados")
