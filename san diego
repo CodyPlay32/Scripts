@@ -1,102 +1,39 @@
 -- Anti-Update Script para Delta Executor
--- Detecta cambios en el juego y desconecta automáticamente
+-- Solo saca al jugador, no cierra el juego
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local HttpService = game:GetService("HttpService")
-
 local LocalPlayer = Players.LocalPlayer
-local PlaceId = game.PlaceId
-local JobId = game.JobId
 
--- Configuración
-local CONFIG = {
-    CheckInterval = 5, -- Segundos entre verificaciones
-    KickMessage = "El juego se ha actualizado. Por favor vuelve a unirte.",
-    CloseOnUpdate = true, -- true = cierra el juego, false = solo saca al jugador
-    NotifyBeforeKick = true -- Muestra notificación antes de sacar
-}
+-- Guardar valores iniciales
+local initialPlaceVersion = game.PlaceVersion
+local initialJobId = game.JobId
+local initialPlaceId = game.PlaceId
 
--- Variables para tracking
-local lastPlaceVersion = game.PlaceVersion
-local isChecking = true
+-- Mensaje al ser expulsado
+local kickMessage = "El juego se ha actualizado. Reconectando..."
 
--- Función para desconectar/cerrar
-local function DisconnectPlayer(reason)
-    if CONFIG.NotifyBeforeKick then
-        -- Notificación visual (usando el chat o GUI simple)
-        pcall(function()
-            game.StarterGui:SetCore("SendNotification", {
-                Title = "Actualización Detectada",
-                Text = reason,
-                Duration = 3
-            })
-        end)
-        wait(3)
-    end
-    
-    if CONFIG.CloseOnUpdate then
-        -- Cierra el juego completamente
-        pcall(function()
-            game:Shutdown()
-        end)
-    else
-        -- Solo saca al jugador del servidor
-        LocalPlayer:Kick(reason)
-    end
+-- Función para expulsar
+local function kickPlayer(reason)
+    LocalPlayer:Kick(kickMessage .. " (" .. reason .. ")")
 end
 
--- Método 1: Detectar cambios en PlaceVersion
-spawn(function()
-    while isChecking and wait(CONFIG.CheckInterval) do
-        local currentVersion = game.PlaceVersion
-        
-        if currentVersion ~= lastPlaceVersion then
-            isChecking = false
-            DisconnectPlayer("El juego se actualizó (PlaceVersion cambió: " .. lastPlaceVersion .. " -> " .. currentVersion .. ")")
-            break
-        end
+-- Verificación cada 3 segundos
+while task.wait(3) do
+    -- Detectar cambio de versión del lugar
+    if game.PlaceVersion ~= initialPlaceVersion then
+        kickPlayer("Versión cambiada: " .. initialPlaceVersion .. " → " .. game.PlaceVersion)
+        break
     end
-end)
-
--- Método 2: Detectar cambios en JobId (cambio de servidor)
-spawn(function()
-    while isChecking and wait(1) do
-        if game.JobId ~= JobId then
-            isChecking = false
-            DisconnectPlayer("Detectado cambio de servidor (JobId cambió)")
-            break
-        end
+    
+    -- Detectar cambio de servidor
+    if game.JobId ~= initialJobId then
+        kickPlayer("Servidor cambiado")
+        break
     end
-end)
-
--- Método 3: Detectar si el PlaceId cambia (raro pero posible)
-spawn(function()
-    while isChecking and wait(1) do
-        if game.PlaceId ~= PlaceId then
-            isChecking = false
-            DisconnectPlayer("Detectado cambio de lugar (PlaceId cambió)")
-            break
-        end
+    
+    -- Detectar cambio de lugar
+    if game.PlaceId ~= initialPlaceId then
+        kickPlayer("Lugar cambiado")
+        break
     end
-end)
-
--- Método 4: Monitorear desconexiones del servidor
-game:GetService("NetworkClient").ChildRemoved:Connect(function(child)
-    if child.Name == "ServerConnection" then
-        isChecking = false
-        DisconnectPlayer("Conexión con el servidor perdida (posible actualización)")
-    end
-end)
-
--- Método 5: Detectar cambios en el DataModel
-local connection
-connection = game:GetPropertyChangedSignal("PlaceVersion"):Connect(function()
-    isChecking = false
-    if connection then connection:Disconnect() end
-    DisconnectPlayer("Cambio de versión detectado en tiempo real")
-end)
-
-print("Anti-Update Script cargado - Monitoreando actualizaciones...")
-print("PlaceVersion inicial: " .. tostring(lastPlaceVersion))
-print("JobId: " .. tostring(JobId))
+end
